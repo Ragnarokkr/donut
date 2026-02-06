@@ -31,7 +31,7 @@ echo "permit persist setenv {PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/s
 Clone the repository and fire up the engine:
 
 ```sh
-git clone https://github.com/Ragnarokkr/dotfiles.git
+git clone https://github.com/Ragnarokkr/donut.git
 ./donut
 ```
 
