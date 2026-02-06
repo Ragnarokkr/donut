@@ -1,6 +1,6 @@
 # 🍩 DoNuT (Dotfiles-Nushell Tracker)
 
-![](docs/images/banner.webp)
+<div align="center"><img src="docs/images/banner.webp"></div>
 
 This is my personal repository for managing the installation and
 configuration of all the applications I use and their related
@@ -12,21 +12,14 @@ here anyway as a personal reminder for future updates.
 ## Table of Contents
 
 - [Getting Started](#-getting-started)
-
 - [Terminology](#-terminology)
-
 - [The Script](#-the-script)
     - [The Database](#the-database)
-
     - [The Glazes](#the-glazes)
-
     - [Data and Statistics](#data-and-statistics)
-
 - [Technical Details](#-technical-details)
     - [Directory Structure](#directory-structure)
-
     - [Scripts and Support Library](#scripts-and-support-library)
-
 - [TODOs](#todos)
 
 ## ❓ Why another tricky dotfiles manager?
