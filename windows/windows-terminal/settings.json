@@ -1,0 +1,30 @@
+{
+    "centerOnLaunch": true,
+    "compatibility.allowHeadless": true,
+    "copyFormatting": "none",
+    "copyOnSelect": true,
+    "minimizeToNotificationArea": true,
+    "profiles": {
+        "defaults": {
+            "adjustIndistinguishableColors": "never",
+            "colorScheme": "Dimidium",
+            "experimental.rainbowSuggestions": true,
+            "experimental.repositionCursorWithMouse": true,
+            "experimental.retroTerminalEffect": false,
+            "font": {
+                "cellHeight": "1.5",
+                "face": "JetBrainsMono Nerd Font Propo",
+                "features": {
+                    "zero": 0
+                }
+            },
+            "opacity": 85,
+            "rightClickContextMenu": true,
+            "useAcrylic": true
+        }
+    },
+    "searchWebDefaultQueryUrl": "https://www.google.com/search?q=%22%s%22",
+    "tabWidthMode": "compact",
+    "useAcrylicInTabRow": true,
+    "windowingBehavior": "useExisting"
+}

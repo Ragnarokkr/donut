@@ -1,0 +1,16 @@
+# Skip newer or system-specific unmatched options.
+IgnoreUnknown AddKeysToAgent,UseKeychain
+
+Host *
+   # Accelerate connections by reusing existing connections to the same host.
+    ControlMaster auto
+    ControlPath ~/.ssh/controlmasters/%r@%h:%p
+    ControlPersist 5
+
+    # Keep the connection temporarily open by sending a data every few minutes.
+    ServerAliveCountMax 6
+    ServerAliveInterval 300
+
+    # Disable client-side roaming support for security reasons.
+    # See https://www.upguard.com/blog/fixing-the-new-openssh-roaming-bug
+    UseRoaming no

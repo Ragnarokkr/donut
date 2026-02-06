@@ -1,0 +1,19 @@
+#!/usr/bin/env zsh
+
+# Configure prompt
+eval "$(oh-my-posh init zsh --config $XDG_CONFIG_HOME/oh-my-posh/atomic-custom.omp.json)"
+
+# Enable history search
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+# Fish-like syntax highlighting and autosuggestions
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# Zoxide configruation
+eval "$(zoxide init zsh)"
+
+# FNM
+eval "$(fnm env)"

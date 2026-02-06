@@ -1,0 +1,11 @@
+== Table of Contents
+- #link(<getting-started>)[Getting Started]
+- #link(<terminology>)[Terminology]
+- #link(<the-script>)[The Script]
+  - #link(<the-database>)[The Database]
+  - #link(<the-glazes>)[The Glazes]
+  - #link(<data-and-statistics>)[Data and Statistics]
+- #link(<technical-details>)[Technical Details]
+  - #link(<directory-structure>)[Directory Structure]
+  - #link(<scripts-and-support-library>)[Scripts and Support Library]
+- #link(<todos>)[TODOs]

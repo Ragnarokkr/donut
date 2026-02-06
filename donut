@@ -1,0 +1,485 @@
+#!/usr/bin/env nu
+
+use scripts/config.nu *
+use scripts/messages.nu *
+use scripts/database.nu *
+use scripts/libs/log.nu *
+use scripts/libs/system.nu *
+use scripts/libs/strings.nu *
+
+# ============================================================================
+# ============================  PRIVATE COMMANDS  ============================
+# ============================================================================
+
+# The DoNuT's Banner 🚀
+def get-banner [] {
+    const banner = [
+        $"(ansi '#ff6e61')█████████   ████████  ████    ███ ███    ███ ███████████(ansi reset)"
+        $"(ansi '#ffcb5c')███    ███ ███    ███ █████   ███ ███    ███     ███    (ansi reset)"
+        $"(ansi '#88d8b0')▒▒▒    ▒▒▒ ▒▒▒    ▒▒▒ ▒▒▒▒▒▒  ▒▒▒ ▒▒▒    ▒▒▒     ▒▒▒    (ansi reset)"
+        $"(ansi '#29b0ff')▒▒▒    ▒▒▒ ▒▒▒    ▒▒▒ ▒▒▒ ▒▒▒ ▒▒▒ ▒▒▒    ▒▒▒     ▒▒▒    (ansi reset)"
+        $"(ansi '#a7dadc')░░░    ░░░ ░░░    ░░░ ░░░  ░░░░░░ ░░░    ░░░     ░░░    (ansi reset)"
+        $"(ansi '#447a9c')░░░    ░░░ ░░░    ░░░ ░░░   ░░░░░ ░░░    ░░░     ░░░    (ansi reset)"
+        $"(ansi '#1d3658')░░░░░░░░░   ░░░░░░░░  ░░░    ░░░░  ░░░░░░░░      ░░░    (ansi reset)"
+        $"(ansi attr_bold)($MANIFEST.name)(ansi reset)"
+        $"(ansi attr_underline)($MANIFEST.description)(ansi reset)(char newline)"
+    ]
+    let width = (term size).columns
+    let hero = $banner | drop 2 | each { $in | fill -w $width -a center } | str join (char newline)
+    let title = $banner | skip (($banner | length) - 2) | each { $in | fill -w $width -a center } | str join (char newline)
+
+    (char newline) + $hero + (char newline) + (char newline) + $title
+}
+
+# Checks if basic requirements are installed on the system
+def has-requirements []: nothing -> bool {
+    if (is-linux) {
+        mut requirements = {
+            doas: (is-installed doas)
+            sudo: (is-installed sudo)
+            git: (is-installed git)
+            nu_plugin_query: (plugin list | where name == query | is-not-empty)
+        }
+        if not ($requirements | values | any {}) {
+            log -l $LOG_LEVEL.error $MESSAGE.sys_err_requirements
+            log -l $LOG_LEVEL.error $"($LOG_TYPE.comment.ansi_open)It is not required for both (ansi attr_bold)doas(ansi reset_bold) and (ansi attr_bold)sudo(ansi reset) to be installed.(ansi reset)"
+            $requirements
+                | items {|k,v| log -l $LOG_LEVEL.error (' - {name}: {status}' | template { name: $k status: (if $v { 'ok' } else { 'missing' }) })}
+                | ignore
+            return false
+        }
+    } else if (is-windows) {
+        mut requirements = {
+            git: (is-installed git)
+            nu_plugin_query: (plugin list | where name == query | is-not-empty)
+        }
+        if not ($requirements | values | any {}) {
+            log -l $LOG_LEVEL.error $MESSAGE.sys_err_requirements
+            $requirements
+            | items {|k,v| log -l $LOG_LEVEL.error (' - {name}: {status}' | template { name: $k status: (if $v { 'ok' } else { 'missing' }) })}
+            | ignore
+            return false
+        }
+    }
+    true
+}
+
+# Returns current session's state
+def get-state []: nothing -> string {
+    execute-sql 'SELECT state FROM session LIMIT 1' | get 0.state
+}
+
+# Transitioning the session's state to `new_state`
+def change-state [
+    new_state: string
+]: nothing -> bool {
+    const STATES_MAP = {
+        $STATE.initial: [$STATE.preinstall]
+        $STATE.preinstall: [$STATE.preconfig]
+        $STATE.preconfig: [$STATE.first_restart]
+        $STATE.first_restart: [$STATE.install]
+        $STATE.install: [$STATE.config]
+        $STATE.config: [$STATE.done]
+    }
+
+    stor import -f $DATABASE_PATH
+    let state = (get-state)
+
+    if $new_state in ($STATES_MAP | get $state) {
+        stor update -t session -u { state: $new_state }
+        save-db
+        true
+    } else {
+        log -l $LOG_LEVEL.fail ($MESSAGE.sys_err_state | template { from_state: $state to_state: $new_state })
+        false
+    }
+}
+
+# Installs `toppings` according to the required OS and package manager
+def install-toppings [
+    toppings: table # toppings to be installed
+]: nothing -> bool {
+    use scripts/libs/net.nu [has-connection]
+
+    let as_root = first-available doas sudo
+
+    let PKG_MANAGER = {
+        pacman: [$as_root pacman -S --needed --noconfirm --noprogressbar]
+        paru: [paru -S --needed --noconfirm --noprogressbar --sudo=($as_root)]
+        yay: [yay -S --needed --noconfirm --noprogressbar --sudo=($as_root)]
+        cargo: [cargo install]
+        go: [go install]
+        winget: [winget install --disable-interactivity --accept-source-agreements --accept-package-agreements]
+    }
+
+    $toppings | group-by package_manager | items {|pm, pkgs|
+        if $pm in $PKG_MANAGER {
+            log -l $LOG_LEVEL.install -s install ($MESSAGE.pkg_info_install_via | template { command: $pm })
+            if (has-connection) {
+                let result = run-external ($PKG_MANAGER | get $pm) ...($pkgs | get name) | complete
+                $result | log -l $LOG_LEVEL.install -s install
+                if $result.exit_code != 0 { return false }
+            } else { false }
+        } else {
+            log -l $LOG_LEVEL.warning -s install ($MESSAGE.pkg_err_manager | template { command: $pm })
+            false
+        }
+    } | ignore
+
+    true
+}
+
+# Preforms required `action` for specific `hook` targeting the required `os`.
+def do-action [
+    action: int         # any of `ACTION.*`
+    target_os: string   # any of `OS.*`
+    hook: string        # any of `HOOK.*`
+]: nothing -> bool {
+    # Extract action-specific configuration to avoid repeated matches
+    let act = match $action {
+        $a if $a == $ACTION.install => { col: 'installed', tag: 'install', verb: 'Installing' }
+        $a if $a == $ACTION.config => { col: 'configured', tag: 'config', verb: 'Configuring' }
+        _ => { return false }
+    }
+
+    # Checks if any file associated with a glaze is more recent than its status timestamp
+    let should_run: closure = {|glaze_id, ref_time|
+        let files = execute-sql 'SELECT filepath FROM files WHERE glaze_id = ?' -p [$glaze_id]
+        $files | any {|f| (ls $f.filepath | get modified.0) > ($ref_time | into datetime)}
+    }
+
+    # Executes the external Nushell script for a given glaze
+    let run_script: closure = {|name:string|
+        do { nu ($GLAZES_DIR | path join $"($name).nu") config } | from json
+    }
+
+    # Installs all supported toppings and let the Nushell script to handle the custom ones
+    let do_install: closure = {|glaze|
+        let toppings: table = stor open | query db $"SELECT name, package_manager FROM toppings WHERE glaze_id = '($glaze.id)' AND os = '($target_os)'"
+        let custom_toppings: table = $toppings | where package_manager == 'custom'
+        (install-toppings ($toppings | where package_manager != 'custom')) and (if ($custom_toppings | is-not-empty) {
+            do $run_script $glaze.name
+        } else { true })
+    }
+
+    # Retrieve all glazes matching the hook and OS scope
+    let glazes: table = stor open
+    | query db $"SELECT id, name, scope, hook, priority, ($act.col) FROM glazes"
+    | where { $in.hook == $hook and ($in.scope == 'common' or $in.scope == $target_os) }
+    | sort-by priority
+
+    for glaze in $glazes {
+        if (do $should_run $glaze.id ($glaze | get $act.col)) {
+            stor import -f $DATABASE_PATH
+
+            log -s $act.tag ($MESSAGE.glaze_info_detail | template { status: 'Loading' glaze: $glaze.name })
+            log -s $act.tag ($MESSAGE.glaze_info_dep_generic | template { status: 'Resolving' })
+
+            # Process dependencies for the current glaze
+            let deps = stor open
+            | query db $"SELECT g.id, g.name, g.($act.col) FROM dependencies d JOIN glazes g ON g.id = d.dependency_id WHERE d.glaze_id = '($glaze.id)'"
+            | sort-by priority
+
+            for dep in $deps {
+                if (do $should_run $dep.id ($dep | get $act.col)) {
+                    log -s $act.tag ($MESSAGE.glaze_info_dep_detail | template { status: $act.verb glaze: $dep.name })
+                    let success = if $action == $ACTION.install {
+                        do $do_install $dep
+                    } else {
+                        let result = do $run_script $dep.name
+                        stor import -f $DATABASE_PATH
+                        $result
+                    }
+                    if not $success { return false }
+
+                    # Update timestamps
+                    if $action == $ACTION.install {
+                        execute-sql 'UPDATE glazes SET installed = ? WHERE id = ?' -p [(date now | format-db-date), $dep.id]
+                    } else {
+                        execute-sql 'UPDATE glazes SET configured = ? WHERE id = ?' -p [(date now | format-db-date), $dep.id]
+                    }
+                    save-db
+                }
+            }
+
+            # Execute the action for the primary glaze
+            log -s $act.tag ($MESSAGE.glaze_info_detail | template { status: $act.verb glaze: $glaze.name })
+            let success = if $action == $ACTION.install {
+                do $do_install $glaze
+            } else {
+                let result = do $run_script $glaze.name
+                stor import -f $DATABASE_PATH
+                $result
+            }
+            if not $success { return false }
+
+            # Update timestamps
+            if $action == $ACTION.install {
+                execute-sql 'UPDATE glazes SET installed = ? WHERE id = ?' -p [(date now | format-db-date), $glaze.id]
+            } else {
+                execute-sql 'UPDATE glazes SET configured = ? WHERE id = ?' -p [(date now | format-db-date), $glaze.id]
+            }
+            save-db
+        }
+    }
+    true
+}
+
+# Organizes and renders all environment changes
+def render-environment [
+    --width (-w): int = 78  # width for separator lines
+]: nothing -> string {
+    let transactions = execute-sql 'SELECT body, priority, glaze_id FROM environment ORDER BY priority, glaze_id'
+
+    mut content: list<string> = [
+        ('' | fill -c '#' -w $width)
+        ('  THIS CONTENT IS GENERATED BY DONUT - DO NOT EDIT  ' | fill -c '#' -w $width -a center)
+        ('' | fill -c '#' -w $width)
+        ''
+    ]
+
+    for glaze in ($transactions | get glaze_id | uniq) {
+        let glaze_name = (execute-sql 'SELECT name FROM glazes WHERE id = ? LIMIT 1' -p [$glaze]).0.name
+        $content ++= [('# ' + ($" [ GLAZE: ($glaze_name) ] " | fill -c '=' -w ($width - 2) -a center))]
+        for row in ($transactions | where glaze_id == $glaze) {
+            $content ++= [($row.body | str trim)]
+        }
+        $content ++= [('# ' | fill -c '-' -w $width)]
+    }
+
+    $content | str join (char newline)
+}
+
+# ============================================================================
+# ============================  PUBLIC COMMANDS  =============================
+# ============================================================================
+
+# Performs operations on the database
+def "main db" [
+    --security-clean (-c) # Cleans glazes' environment settings from database
+    --update (-u) # Initializes/Updates the database
+] {
+    print (get-banner)
+
+    log --workspace core
+    if $security_clean {
+        if not ($DATABASE_PATH | path exists) { return null }
+        stor import -f $DATABASE_PATH
+        execute-sql -t 'DELETE FROM environment'
+        save-db
+    } else if $update {
+        if not ($DATABASE_PATH | path exists) { init-db }
+        update-db
+    }
+    log --exit-workspace
+}
+
+# Performs operations on glazes
+def "main glaze" [
+    glaze?: string  # Glaze's unique name
+    --add (-a)      # Adds a new glaze module
+    --delete (-d)   # Deletes an existing glaze module and its associated directories
+    --reset (-r)    # Resets one or all glazes to their initial state
+] {
+    if $add {
+        if ($glaze | is-empty) {
+            print -e ($MESSAGE.sys_err_generic | template { message: 'glaze unique name not provided.' })
+            return null
+        }
+
+        let $target_path: path = $GLAZES_DIR | path join $"($glaze).nu"
+        if not ($target_path | path exists) {
+            cp $GLAZE_TEMPLATE_PATH $target_path
+            print ($MESSAGE.glaze_ok_added | template { name: $glaze })
+        } else {
+            print -e ($MESSAGE.glaze_err_exists | template { name: $glaze })
+        }
+
+    } else if $delete {
+        if ($glaze | is-empty) {
+            print -e ($MESSAGE.sys_err_generic | template { message: 'glaze unique name not provided.' })
+            return null
+        }
+
+        use scripts/libs/fs.nu [work-dir]
+
+        let answer = input -n 1 -d 'n' $"(ansi attr_bold)This will delete your glaze and all related scoped directories. Are you sure?(ansi reset) [y/N]"
+        if ($answer | str downcase) == 'n' { return null }
+
+        let $target_path: path = $GLAZES_DIR | path join $"($glaze).nu"
+        if ($target_path | path exists) {
+            rm -f $target_path
+            for p in (work-dir $glaze | values) {
+                if ($p | path exists) { rm -fr $p }
+            }
+            print ($MESSAGE.glaze_ok_removed | template { name: $glaze })
+        } else {
+            print -e ($MESSAGE.glaze_err_not_exists | template { name: $glaze })
+        }
+
+    } else if $reset {
+        if not ($DATABASE_PATH | path exists) {
+            print -e ($MESSAGE.sys_err_generic | template { message: $MESSAGE.db_err_not_found })
+            return null
+        }
+
+        stor import -f $DATABASE_PATH
+        execute-sql -t 'UPDATE session SET state = ?' -p [$STATE.initial]
+        if ($glaze | is-empty) {
+            execute-sql -t 'UPDATE glazes SET installed = ?, configured = ?' -p [$DATETIME_RESET $DATETIME_RESET]
+        } else {
+            execute-sql -t 'UPDATE glazes SET installed = ?, configured = ? WHERE name = ?' -p [$DATETIME_RESET $DATETIME_RESET $glaze]
+        }
+        save-db | ignore
+    }
+}
+
+# Show information about database or glazes
+def "main show" [
+    glaze?: string  # glaze's unique name
+    --info (-i)     # Shows information about a glaze
+    --list (-l)     # Shows a list of all registered glazes
+    --stats (-s)    # Shows database's overall statistics
+] {
+    if not ($DATABASE_PATH | path exists) {
+        print -e ($MESSAGE.sys_err_generic | template { message: $MESSAGE.db_err_not_found })
+        return null
+    }
+
+    stor import -f $DATABASE_PATH
+
+    if $info {
+        if ($glaze | is-not-empty) {
+            let query = execute-sql 'SELECT name FROM glazes WHERE name = ? LIMIT 1' -p [$glaze]
+            let glaze_path = (if ($query | is-not-empty) {
+                $GLAZES_DIR | path join $"($glaze).nu"
+            } else {
+                print -e ($MESSAGE.sys_err_generic | template { message: 'the required glaze is not registered.' })
+                return null
+            })
+
+            do { nu $glaze_path info }
+
+        } else {
+            let query = execute-sql 'SELECT name FROM glazes ORDER BY name'
+            let choice = $query | input list --fuzzy --display name --index 'Select a glaze or type its name:'
+            if $choice != null {
+                do { nu ($GLAZES_DIR | path join $"($query | get $choice | get name).nu") info }
+            } else {
+                return null
+            }
+        }
+
+    } else if $list {
+        execute-sql 'SELECT name, description FROM glazes ORDER BY name' | table -i 1
+
+    } else if $stats {
+        stor import -f $DATABASE_PATH
+
+        {
+            'Last Session': ((execute-sql 'SELECT last_session FROM session LIMIT 1').0.last_session | into datetime)
+            'Registered Glazes': (execute-sql 'SELECT COUNT(id) FROM glazes' | transpose -d).column1
+            'Registered Categories': (execute-sql 'SELECT COUNT(DISTINCT category) FROM glazes' | transpose -d).column1
+            'Tracked Files': (execute-sql 'SELECT COUNT(id) FROM files' | transpose -d).column1
+            'Environment Settings': (execute-sql 'SELECT COUNT(id) FROM environment' | transpose -d).column1
+            'Common Scoped': (execute-sql 'SELECT COUNT(id) FROM glazes WHERE scope = ?' -p [$SCOPE.common] | transpose -d).column1
+            'Linux Scoped': (execute-sql 'SELECT COUNT(id) FROM glazes WHERE scope = ?' -p [$SCOPE.linux] | transpose -d).column1
+            'Windows Scoped': (execute-sql 'SELECT COUNT(id) FROM glazes WHERE scope = ?' -p [$SCOPE.windows] | transpose -d).column1
+            'Disabled': (execute-sql 'SELECT COUNT(id) FROM glazes WHERE scope = ?' -p [$SCOPE.disabled] | transpose -d).column1
+        }
+    }
+}
+
+# Dotfiles-Nushell Tracker
+# Track dotfiles. Glaze Nushell. Customize freely.
+def main [] {
+    mut restart = false
+
+    print (get-banner)
+
+    log -w core
+
+    if ($DATABASE_PATH | path exists) {
+        # Loads the database
+        log -s database ($MESSAGE.db_info_status | template { status: 'Loading' })
+        stor import -f $DATABASE_PATH
+    } else {
+        # Creates the database
+        log -s database -l $LOG_LEVEL.warning -s database $MESSAGE.db_err_not_found
+        update-db
+    }
+
+    init-session
+
+    if (get-state) == $STATE.initial {
+        if (has-requirements) {
+            change-state $STATE.preinstall
+        }
+    }
+
+    if (get-state) == $STATE.preinstall {
+        if (do-action $ACTION.install (get-os) $HOOK.preinstall) {
+            change-state $STATE.preconfig
+        } else {
+            log -s install -l $LOG_LEVEL.error ($MESSAGE.glaze_err_preinstall | template { action: 'installing' } )
+        }
+    }
+
+    if (get-state) == $STATE.preconfig {
+        reset-environment
+
+        if (do-action $ACTION.config (get-os) $HOOK.preinstall) {
+            change-state $STATE.first_restart
+        } else {
+            log -s config -l $LOG_LEVEL.error ($MESSAGE.glaze_err_preinstall | template { action: 'configuring' } )
+        }
+    }
+
+    if (get-state) == $STATE.first_restart {
+        if (execute-sql 'SELECT COUNT(*) FROM environment' | transpose -d).column1 > 0 {
+            render-environment | save -f $nu.env-path
+            if $env.LAST_EXIT_CODE == 0 {
+                change-state $STATE.install
+                print ([(char newline) $MESSAGE.glaze_ok_preinstall (char newline) $MESSAGE.sys_info_restart_pre (char newline)] | str join ' ')
+            } else {
+                log -s config -l $LOG_LEVEL.error $MESSAGE.env_err_save
+            }
+        }
+        $restart = true
+    }
+
+    if not $restart {
+        if (get-state) == $STATE.install {
+            if (do-action $ACTION.install (get-os) $HOOK.install) {
+                change-state $STATE.config
+            } else {
+                log -s install -l $LOG_LEVEL.error ($MESSAGE.glaze_err_install | template { action: 'installing' } )
+            }
+        }
+
+        if (get-state) == $STATE.config {
+            reset-environment
+
+            if (do-action $ACTION.config (get-os) $HOOK.install) {
+                change-state $STATE.done
+            } else {
+                log -s config -l $LOG_LEVEL.error ($MESSAGE.glaze_err_install | template { action: 'configuring' } )
+            }
+        }
+
+        if (get-state) == $STATE.done {
+            if (execute-sql 'SELECT COUNT(*) FROM environment' | transpose -d).column1 > 0 {
+                render-environment | save -f $nu.env-path
+                if $env.LAST_EXIT_CODE == 0 {
+                    print ([(char newline) $MESSAGE.glaze_ok_install (char newline) $MESSAGE.sys_info_restart_main (char newline) $MESSAGE.db_warn_security (char newline)] | str join ' ')
+                } else {
+                    log -s config -l $LOG_LEVEL.error $MESSAGE.env_err_save
+                }
+            }
+        }
+    }
+
+    save-db
+
+    log -x
+}

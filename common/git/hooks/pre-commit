@@ -1,0 +1,16 @@
+#!/usr/bin/env nu
+
+if (git config --bool hooks.gitleaks) == \"true\" {
+    gitleaks protect --no-banner -v --staged
+
+    if $env.LAST_EXIT_CODE == 1 {
+        print $"
+    (ansi red)(ansi bo)gitleaks(ansi rst_bo) has detected sensitive information in your changes.(ansi reset)
+    To disable the gitleaks precommit hook run the following command:
+
+        ("git config hooks.gitleaks false" | nu-highlight)\n"
+        exit 1
+    }
+} else {
+    print $"\n(ansi yellow)(ansi bo)gitleaks(ansi rst_bo) pre-commit disabled (enable with '(git config hooks.gitleaks true | nu-highlight)')(ansi reset)\n"
+}

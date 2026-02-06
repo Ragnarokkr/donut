@@ -1,0 +1,9 @@
+# Disguise as Firefox on Windows 10/11.
+# NOTE: some remote services expects this set to "curl" to properly work in CLI
+user-agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0"
+
+# When following a redirect, automatically set the previous URL as referer.
+referer = ";auto"
+
+# Wait 60 seconds before timing out.
+connect-timeout = 60

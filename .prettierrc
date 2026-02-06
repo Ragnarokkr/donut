@@ -1,0 +1,13 @@
+overrides:
+  - files:
+      - '*.jsonc'
+    options:
+      parser: json
+      trailingComma: none
+
+  - files:
+      - '*.json'
+      - '*.jsonc'
+    options:
+      tabWidth: 2
+      printWidth: 120

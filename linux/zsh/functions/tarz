@@ -1,0 +1,19 @@
+# Create a .tar.zst archive, using `zstd` for compression
+
+local tmpFile="${@%/}.tar"
+tar -cvf "${tmpFile}" --exclude=".DS_Store" "${@}" || return 1
+
+local size=$(
+    stat -c"%s" "${tmpFile}" 2>/dev/null # GNU `stat`
+)
+
+if hash zstd 2>/dev/null; then
+    echo "Compressing .tar ($((size / 1000)) kB) using \`zstd\`…"
+    zstd -T0 -19 -v --rm "${tmpFile}" || return 1
+fi
+
+local zippedSize=$(
+    stat -c"%s" "${tmpFile}.zst" 2>/dev/null # GNU `stat`
+)
+
+echo "${tmpFile}.zst ($((zippedSize / 1000)) kB) created successfully."

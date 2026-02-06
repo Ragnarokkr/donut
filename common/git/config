@@ -1,0 +1,84 @@
+[alias]
+    br = branch
+    branches = branch --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) %(color:green)(%(committerdate:relative)) [%(authorname)]'
+    cm = commit
+    co = checkout
+    cp = cherry-pick
+    glog = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+    list = log --abbrev-commit --pretty=format:'%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]'
+    prune = fetch --prune
+    st = status
+    stash-all = stash save --include-untracked
+    undo = reset --soft HEAD^
+    up = pull --rebase --autostash --all
+[branch]
+    sort = committerdate
+[color]
+    ui = true
+[color "diff-highlight"]
+    oldnormal = red bold
+    oldhighlight = yellow bold 52
+    newnormal = green bold
+    newhighlight = cyan bold 22
+[color "diff"]
+    meta = 11
+    frag = magenta bold
+    commit = cyan bold
+    old = red bold
+    new = green bold
+    whitespace = red reverse
+[column]
+    ui = auto
+[commit]
+    gpgsign = true
+    verbose = true
+[core]
+    autocrlf = input
+    fsmonitor = true
+    whitespace = space-before-tab,-indent-with-non-tab,trailing-space
+    untrackedcache = true
+[diff]
+    algorithm = histogram
+    colormoved = true
+    mnemonicprefix = true
+    renames = true
+    submodule = log
+[fetch]
+    all = true
+    prune = true
+    prunetags = true
+    recursesubmodules = on-demand
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+[help]
+    autocorrect = prompt
+[init]
+    defaultbranch = master
+[merge]
+    conflictstyle = zdiff3
+[mergetool]
+    keepbackup = false
+    keeptemporaries = false
+    writetotemp = true
+    prompt = false
+[pull]
+    rebase = true
+[push]
+    autosetupremote = true
+    default = simple
+    followtags = true
+[rebase]
+    autosquash = true
+    autostash = true
+    updaterefs = true
+[rerere]
+    autoupdate = true
+    enabled = true
+[status]
+    showuntrackedfiles = all
+    submodulesummary = true
+[tag]
+    sort = version:refname
