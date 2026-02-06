@@ -1,6 +1,6 @@
 === Scripts and Support Library <scripts-and-support-library>
 
-Under the hood, `setup.nu` is powered by a collection of specialized scripts
+Under the hood, `donut` is powered by a collection of specialized scripts
 and libraries stored in `scripts/` and `scripts/libs/`.
 
 #table(

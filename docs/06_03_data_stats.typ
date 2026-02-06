@@ -6,7 +6,7 @@ View dotfile collection statistics.
 Show information about database or glazes
 
 Usage:
-  > setup.nu show {flags} (glaze)
+  > donut show {flags} (glaze)
 
 Flags:
   -h, --help: Display the help message for this command
@@ -23,7 +23,7 @@ If you don't specify one, we'll serve up a menu of every registered glaze
 so you can pick your favorite to inspect.
 
 ```sh
-> ./setup.nu show --info age
+> ./donut show --info age
 ╭──────────────┬──────────────────────────────────────────────────────────────────────────────────────────╮
 │ name         │ age                                                                                      │
 │ category     │ security                                                                                 │
@@ -47,7 +47,7 @@ The `--list` flag serves up a full menu of every glaze currently registered in
 the DoNuT database.
 
 ```sh
-> ./setup.nu show --list
+> ./donut show --list
 ╭────┬──────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │  # │       name       │                                                          description                                                          │
 ├────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -65,7 +65,7 @@ If you want to see the _nutrition facts_ of your setup, the `--stats` flag
 serves up the overall totals for your glazes and toppings.
 
 ```sh
-./setup.nu show --stats
+./donut show --stats
 ╭───────────────────────┬──────────────╮
 │ Last Session          │ 18 hours ago │
 │ Registered Glazes     │ 50           │

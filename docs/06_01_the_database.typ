@@ -7,7 +7,7 @@ environmental state.
 Performs operations on the database
 
 Usage:
-  > setup.nu db {flags}
+  > donut db {flags}
 
 Flags:
   -h, --help: Display the help message for this command

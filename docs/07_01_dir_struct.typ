@@ -43,7 +43,7 @@ pandoc -f typst -t gfm -o README.md docs/README.typ
 ```
 
 The `scripts/` directory houses the core logic and support libraries required
-by `setup.nu` and individual glazes. It also includes the `sql/` folder, which
+by `donut` and individual glazes. It also includes the `sql/` folder, which
 contains the schemas used to build the application's database.
 
 The `glazes/` folder hosts only the scripts of the registered glazes.

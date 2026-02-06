@@ -1,6 +1,6 @@
 # 🍩 DoNuT (Dotfiles-Nushell Tracker)
 
-<div align="center"><img src="docs/images/banner.webp"></div>
+![](docs/images/banner.webp)
 
 This is my personal repository for managing the installation and
 configuration of all the applications I use and their related
@@ -11,15 +11,22 @@ here anyway as a personal reminder for future updates.
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-- [Terminology](#terminology)
-- [The Script](#the-script)
+- [Getting Started](#-getting-started)
+
+- [Terminology](#-terminology)
+
+- [The Script](#-the-script)
     - [The Database](#the-database)
+
     - [The Glazes](#the-glazes)
+
     - [Data and Statistics](#data-and-statistics)
-- [Technical Details](#technical-details)
+
+- [Technical Details](#-technical-details)
     - [Directory Structure](#directory-structure)
+
     - [Scripts and Support Library](#scripts-and-support-library)
+
 - [TODOs](#todos)
 
 ## ❓ Why another tricky dotfiles manager?
@@ -60,7 +67,8 @@ These are the requirements to run the setup script:
 - (Lin) [doas](https://github.com/Duncaen/OpenDoas) (optional, but it
   takes precedence over `sudo` if installed)
 
-If you are the only user on the system, something like this should work just fine:
+If you are the only user on the system, something like this should work
+just fine:
 
 ```sh
 # For sudo
@@ -76,7 +84,7 @@ Clone the repository and fire up the engine:
 
 ```sh
 git clone https://github.com/Ragnarokkr/dotfiles.git
-./setup.nu
+./donut
 ```
 
 ### The Setup Workflow
@@ -85,16 +93,16 @@ The procedure is divided into **two phases** comprising **seven steps**:
 
 - **Phase 1**: Preinstall and preconfig
     - **Check**: Verifies that minimum requirements are met.
-    - **Preinstall**: Installs essential system-wide tools (e.g.,
-      `paru`, `unzip`).
+    - **Preinstall**: Installs essential system-wide tools (e.g., `paru`,
+      `unzip`).
     - **Preconfig**: Initial configuration for the preinstalled tools.
     - **Restart**: A mandatory pause. Shells or OS restarts ensure new
       binaries and environment variables are recognized.
 - **Phase 2**: Install and config
     - **Install**: Installs everything marked for general installation.
     - **Config**: Applies the personalized configuration files.
-    - **Second Restart**: The final _bake_. Ensures all changes are
-      active and stable.
+    - **Second Restart**: The final _bake_. Ensures all changes are active
+      and stable.
 
 > [!TIP]
 > You will be prompted for your user password (for `sudo`/`doas`)
@@ -119,20 +127,20 @@ tutorial](https://www.youtube.com/playlist?list=PLjEaoINr3zgGUwGwXlj9kBe7TrVWNjk
 
 ## 🖥 The Script
 
-The heart of the system is [setup.nu](setup.nu). It handles the heavy
-lifting, from initial setup to database management.
+The heart of the system is [donut](donut). It handles the heavy lifting,
+from initial setup to database management.
 
 ```txt
 Dotfiles-Nushell Tracker
 Track dotfiles. Glaze Nushell. Customize freely.
 
 Usage:
-  > setup.nu
+  > donut
 
 Subcommands:
-  setup.nu db (custom) - Performs operations on the database
-  setup.nu glaze (custom) - Performs operations on glazes
-  setup.nu show (custom) - Show information about database or glazes
+  donut db (custom) - Performs operations on the database
+  donut glaze (custom) - Performs operations on glazes
+  donut show (custom) - Show information about database or glazes
 
 Flags:
   -h, --help: Display the help message for this command
@@ -147,7 +155,7 @@ environmental state.
 Performs operations on the database
 
 Usage:
-  > setup.nu db {flags}
+  > donut db {flags}
 
 Flags:
   -h, --help: Display the help message for this command
@@ -168,7 +176,7 @@ automates their creation and management.
 
 ```sh
 Usage:
-  > setup.nu glaze {flags} (glaze)
+  > donut glaze {flags} (glaze)
 
 Flags:
   -h, --help: Display the help message for this command
@@ -185,17 +193,20 @@ Additional files must be manually created in a directory matching the
 glaze’s name, located within the relevant scope directory (`common`,
 `linux`, or `windows`).
 
-> [!TIP] All glaze files are generated from [scripts/glaze.tmpl.nu](scripts/glaze.tmpl.nu).
+> [!TIP]
+> All glaze files are generated from [scripts/glaze.tmpl.nu](scripts/glaze.tmpl.nu).
 
 The `--delete` flag removes an existing glaze and its related
 directories from the file system.
 
-> [!WARNING] All glaze files will be deleted. Ensure backups are made if needed!
+> [!WARNING]
+> All glaze files will be deleted. Ensure backups are made if needed!
 
 The `--reset` flag restores a registered glaze to its initial state for
 re-execution.
 
-> [!NOTE] If no glaze name is provided, all glazes will be reset.
+> [!NOTE]
+> If no glaze name is provided, all glazes will be reset.
 
 ### Data and Statistics
 
@@ -205,7 +216,7 @@ View dotfile collection statistics.
 Show information about database or glazes
 
 Usage:
-  > setup.nu show {flags} (glaze)
+  > donut show {flags} (glaze)
 
 Flags:
   -h, --help: Display the help message for this command
@@ -222,7 +233,7 @@ If you don’t specify one, we’ll serve up a menu of every registered
 glaze so you can pick your favorite to inspect.
 
 ```sh
-> ./setup.nu show --info age
+> ./donut show --info age
 ╭──────────────┬──────────────────────────────────────────────────────────────────────────────────────────╮
 │ name         │ age                                                                                      │
 │ category     │ security                                                                                 │
@@ -246,28 +257,25 @@ The `--list` flag serves up a full menu of every glaze currently
 registered in the DoNuT database.
 
 ```sh
-> ./setup.nu show --list
-╭────┬──────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────╮
-│  # │       name       │                                         description                                          │
-├────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────┤
-│  1 │ age              │ A simple, secure, and modern encryption tool.                                                │
-│  2 │ archivers        │ Various high performant archivers.                                                           │
-│  3 │ base             │ Base system packages and configuration.                                                      │
-:    :                  :                                                                                              :
-:    :                  :                                                                                              :
-│ 48 │ zed              │ A minimal code editor crafted for speed and collaboration with humans and AI.                │
-│ 49 │ zellij           │ A terminal multiplexer.                                                                      │
-│ 50 │ zoxide           │ A smarter cd command. Supports all major shells.                                             │
-├────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────┤
-│  # │       name       │                                         description                                          │
-╰────┴──────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────╯
+> ./donut show --list
+╭────┬──────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  # │       name       │                                                          description                                                          │
+├────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  1 │ age              │ A simple, secure, and modern encryption tool.                                                                                 │
+│  2 │ archivers        │ Various high performant archivers.                                                                                            │
+:    :                  :                                                                                                                               :
+│ 49 │ zellij           │ A terminal multiplexer.                                                                                                       │
+│ 50 │ zoxide           │ A smarter cd command. Supports all major shells.                                                                              │
+├────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  # │       name       │                                                          description                                                          │
+╰────┴──────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 If you want to see the _nutrition facts_ of your setup, the `--stats`
 flag serves up the overall totals for your glazes and toppings.
 
 ```sh
-./setup.nu show --stats
+./donut show --stats
 ╭───────────────────────┬──────────────╮
 │ Last Session          │ 18 hours ago │
 │ Registered Glazes     │ 50           │
@@ -330,15 +338,15 @@ pandoc -f typst -t gfm -o README.md docs/README.typ
 ```
 
 The `scripts/` directory houses the core logic and support libraries
-required by `setup.nu` and individual glazes. It also includes the
-`sql/` folder, which contains the schemas used to build the
-application’s database.
+required by `donut` and individual glazes. It also includes the `sql/`
+folder, which contains the schemas used to build the application’s
+database.
 
 The `glazes/` folder hosts only the scripts of the registered glazes.
 
 ### Scripts and Support Library
 
-Under the hood, `setup.nu` is powered by a collection of specialized
+Under the hood, `donut` is powered by a collection of specialized
 scripts and libraries stored in `scripts/` and `scripts/libs/`.
 
 | **Script**                | **Description**                                                     |

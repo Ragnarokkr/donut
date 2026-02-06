@@ -5,7 +5,7 @@ their creation and management.
 
 ```sh
 Usage:
-  > setup.nu glaze {flags} (glaze)
+  > donut glaze {flags} (glaze)
 
 Flags:
   -h, --help: Display the help message for this command
