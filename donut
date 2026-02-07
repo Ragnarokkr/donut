@@ -170,7 +170,7 @@ def do-action [
 
     for glaze in $glazes {
         if (do $should_run $glaze.id ($glaze | get $act.col)) {
-            stor import -f $DATABASE_PATH
+            load-db
 
             log -s $act.tag ($MESSAGE.glaze_info_detail | template { status: 'Loading' glaze: $glaze.name })
             log -s $act.tag ($MESSAGE.glaze_info_dep_generic | template { status: 'Resolving' })
@@ -187,7 +187,7 @@ def do-action [
                         do $do_install $dep
                     } else {
                         let result = do $run_script $dep.name
-                        stor import -f $DATABASE_PATH
+                        load-db
                         $result
                     }
                     if not $success { return false }
@@ -208,7 +208,7 @@ def do-action [
                 do $do_install $glaze
             } else {
                 let result = do $run_script $glaze.name
-                stor import -f $DATABASE_PATH
+                load-db
                 $result
             }
             if not $success { return false }

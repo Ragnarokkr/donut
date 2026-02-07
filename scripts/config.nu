@@ -43,12 +43,12 @@ export const OS = {
 # ----------------------------------------------------------------------------
 
 export const DONUT_DIR: directory = path self . | path dirname
-export const GLAZES_DIR: directory = 'glazes'
-export const SCRIPTS_DIR: directory = 'scripts'
+export const GLAZES_DIR: directory = $DONUT_DIR | path join 'glazes'
+export const SCRIPTS_DIR: directory = $DONUT_DIR | path join 'scripts'
 export const SQL_DIR: directory = $SCRIPTS_DIR | path join 'sql'
-export const DEFAULT_COMMON_DIR: directory = 'common'
-export const DEFAULT_LINUX_DIR: directory = $OS.linux
-export const DEFAULT_WINDOWS_DIR: directory = $OS.windows
+export const DEFAULT_COMMON_DIR: directory = $DONUT_DIR | path join 'common'
+export const DEFAULT_LINUX_DIR: directory = $DONUT_DIR | path join $OS.linux
+export const DEFAULT_WINDOWS_DIR: directory = $DONUT_DIR | path join $OS.windows
 export const DEFAULT_WINDOWS_USER_BIN_DIR: directory = 'UserApp'
 
 # ----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ export const DEFAULT_WINDOWS_USER_BIN_DIR: directory = 'UserApp'
 # ----------------------------------------------------------------------------
 
 export const DATABASE_PATH: path = 'donut.db'
-export const GLAZE_TEMPLATE_PATH: path = [$SCRIPTS_DIR glaze.tmpl.nu] | path join
+export const GLAZE_TEMPLATE_PATH: path = $SCRIPTS_DIR | path join 'glaze.tmpl.nu'
 
 # ----------------------------------------------------------------------------
 # --------------------------------  ACTIONS  ---------------------------------
