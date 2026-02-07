@@ -60,6 +60,10 @@ def do-config []: nothing -> bool {
     log -s git ($MESSAGE.io_info_copy | template { source: $source_config_path target: $target_config_path })
     $ret = $ret and (cp -f $source_config_path $target_config_path ; $env.LAST_EXIT_CODE == 0)
 
+    let source_ignore_path: path = $common_dir | path join 'gitignore'
+    let target_ignore_path: path = $target_dir | path join '.gitignore'
+    $ret = $ret and (cp-link -f $source_ignore_path $target_ignore_path)
+
     let source_attributes_path: path = $common_dir | path join 'gitattributes'
     let target_attributes_path: path = $target_dir | path join '.gitattributes'
     $ret = $ret and (cp-link -f $source_attributes_path $target_attributes_path)
@@ -91,13 +95,13 @@ def do-config []: nothing -> bool {
         log -s git ($MESSAGE.io_info_config | template { what: 'credential manager for WSL' })
         let gcm = glob '/mnt/c/Program Files*/Git/**/git-credential-manager.exe' | first
         if ($gcm | is-not-empty) {
-            git config set --global credential.helper $"($gcm | str replace ' ' '\ ')"
+            git config set --global credential.helper $"($gcm | str replace -a ' ' '\ ')"
         }
     } else if (is-windows) {
         log -s git ($MESSAGE.io_info_config | template { what: 'credential manager' })
         let gcm = glob 'c:/Program Files*/Git/**/git-credential-manager.exe' | first
         if ($gcm | is-not-empty) {
-            git config set --global credential.helper $"($gcm | str replace ' ' '\ ')"
+            git config set --global credential.helper $"($gcm | str replace -a ' ' '\ ')"
         }
     }
 
@@ -120,15 +124,15 @@ def do-config []: nothing -> bool {
 
     log -s git ($MESSAGE.io_info_config | template { what: 'global settings' })
 
-    git config set --global commit.template $"'(home-dir | path join .gitmessage.txt)'"
+    git config set --global commit.template $"($target_message_path | str replace -a ' ' '\ ')"
     git config set --global core.editor $env.EDITOR
 
     if ($pager | is-not-empty) {
         git config set --global core.pager $"($pager | str join ((char space)(char pipe)(char space)))"
     }
 
-    git config set --global core.excludesFile $"'(home-dir | path join .gitignore)'"
-    git config set --global core.attributesFile $"'(home-dir | path join .gitattributes)'"
+    git config set --global core.excludesFile $"($target_ignore_path | str replace -a ' ' '\ ')"
+    git config set --global core.attributesFile $"($target_attributes_path | str replace ' ' '\ ')"
 
     if (is-installed hevi) {
         git config set --global diff.bin.textconv 'hevi'
