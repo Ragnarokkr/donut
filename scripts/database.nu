@@ -2,6 +2,24 @@ use config.nu [HOOK STATE SCOPE DATETIME_RESET SQL_DIR DATABASE_PATH GLAZES_DIR 
 use messages.nu *
 use libs/log.nu *
 use libs/strings.nu *
+use libs/system.nu [is-linux is-windows]
+
+# Gets the absolute path to the database
+export def db-path []: nothing -> path {
+    if (is-linux) {
+        if 'XDG_DATA_HOME' in $env {
+            [$env.XDG_DATA_HOME donut] | path join $DATABASE_PATH
+        } else {
+            [$env.HOME .local share donut] | path join $DATABASE_PATH
+        }
+    } else if (is-windows) {
+        if 'LOCALAPPDATA' in $env {
+            [$env.APPDATA donut] | path join $DATABASE_PATH
+        } else {
+            [$env.USERPROFILE] | path join $DATABASE_PATH
+        }
+    }
+}
 
 # Formats the date for current database
 export def format-db-date []: datetime -> string {
@@ -22,6 +40,21 @@ export def execute-sql [
     } catch {
         if $transaction { stor open | query db 'ROLLBACK' } else { [] }
     }
+}
+
+# Loads the database
+export def load-db []: nothing -> table {
+    stor import -f (db-path)
+}
+
+# Saves the new database
+export def save-db []: nothing -> table {
+    let db_path: path = db-path
+    if ($db_path | path exists) {
+        rm -fp $db_path
+    }
+    mkdir ($db_path | path dirname)
+    stor export -f $db_path
 }
 
 # Initializes application database
@@ -49,7 +82,7 @@ export def init-session []: nothing -> table {
 # Initializes/Updates the application database.
 export def update-db [] {
     mut stats = { added: 0 updated: 0 removed: 0 }
-    let is_updating = $DATABASE_PATH | path exists
+    let is_updating = db-path | path exists
 
     # Searches all available glazes (*.nu scripts)
     log -s database $MESSAGE.db_info_searching
@@ -59,7 +92,7 @@ export def update-db [] {
     if $is_updating {
         # Loads the existing database
         log -s database ($MESSAGE.db_info_status | template { status: 'Loading' })
-        stor import -f $DATABASE_PATH
+        load-db
     } else {
         # Initializes a new empty database
         log -s database ($MESSAGE.db_info_status | template { status: 'Initializing' })
@@ -166,14 +199,6 @@ export def update-db [] {
     }
 }
 
-# Saves the new database
-export def save-db []: nothing -> table {
-    if ($DATABASE_PATH | path exists) {
-        rm -p $DATABASE_PATH
-    }
-    stor export -f $DATABASE_PATH
-}
-
 # Adds a new glaze into the database
 export def add-glaze [
     data: record # glaze manifest data
@@ -262,7 +287,7 @@ export def add-environment [
 ]: nothing -> bool {
     # This command is mostly called from child processes (nu <script>) so it has
     # to reimport the database before executing the SQL statement.
-    stor import -f $DATABASE_PATH
+    load-db
     let glaze_id = execute-sql 'SELECT id FROM glazes WHERE name = ? LIMIT 1' -p [$name] | get 0.id
     stor insert -t environment -d {
         id: (random uuid)

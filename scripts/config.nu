@@ -42,14 +42,14 @@ export const OS = {
 # ------------------------------  DIRECTORIES  -------------------------------
 # ----------------------------------------------------------------------------
 
-export const DONUT_DIR = path self . | path dirname
-export const GLAZES_DIR = 'glazes'
-export const SCRIPTS_DIR = 'scripts'
-export const SQL_DIR = $SCRIPTS_DIR | path join 'sql'
-export const DEFAULT_COMMON_DIR = 'common'
-export const DEFAULT_LINUX_DIR = $OS.linux
-export const DEFAULT_WINDOWS_DIR = $OS.windows
-export const DEFAULT_WINDOWS_USER_BIN_DIR = 'UserApp'
+export const DONUT_DIR: directory = path self . | path dirname
+export const GLAZES_DIR: directory = 'glazes'
+export const SCRIPTS_DIR: directory = 'scripts'
+export const SQL_DIR: directory = $SCRIPTS_DIR | path join 'sql'
+export const DEFAULT_COMMON_DIR: directory = 'common'
+export const DEFAULT_LINUX_DIR: directory = $OS.linux
+export const DEFAULT_WINDOWS_DIR: directory = $OS.windows
+export const DEFAULT_WINDOWS_USER_BIN_DIR: directory = 'UserApp'
 
 # ----------------------------------------------------------------------------
 # ---------------------------------  PATHS  ----------------------------------

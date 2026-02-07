@@ -259,16 +259,18 @@ def "main db" [
     --security-clean (-c) # Cleans glazes' environment settings from database
     --update (-u) # Initializes/Updates the database
 ] {
+    let db_path: path = db-path
+
     print (get-banner)
 
     log --workspace core
     if $security_clean {
-        if not ($DATABASE_PATH | path exists) { return null }
-        stor import -f $DATABASE_PATH
+        if not ($db_path | path exists) { return null }
+        load-db
         execute-sql -t 'DELETE FROM environment'
         save-db
     } else if $update {
-        if not ($DATABASE_PATH | path exists) { init-db }
+        if not ($db_path | path exists) { init-db }
         update-db
     }
     log --exit-workspace
@@ -318,12 +320,14 @@ def "main glaze" [
         }
 
     } else if $reset {
-        if not ($DATABASE_PATH | path exists) {
+        let db_path: path = db-path
+
+        if not ($db_path | path exists) {
             print -e ($MESSAGE.sys_err_generic | template { message: $MESSAGE.db_err_not_found })
             return null
         }
 
-        stor import -f $DATABASE_PATH
+        load-db
         execute-sql -t 'UPDATE session SET state = ?' -p [$STATE.initial]
         if ($glaze | is-empty) {
             execute-sql -t 'UPDATE glazes SET installed = ?, configured = ?' -p [$DATETIME_RESET $DATETIME_RESET]
@@ -341,12 +345,14 @@ def "main show" [
     --list (-l)     # Shows a list of all registered glazes
     --stats (-s)    # Shows database's overall statistics
 ] {
-    if not ($DATABASE_PATH | path exists) {
+    let db_path: path = db-path
+
+    if not ($db_path | path exists) {
         print -e ($MESSAGE.sys_err_generic | template { message: $MESSAGE.db_err_not_found })
         return null
     }
 
-    stor import -f $DATABASE_PATH
+    load-db
 
     if $info {
         if ($glaze | is-not-empty) {
@@ -374,10 +380,9 @@ def "main show" [
         execute-sql 'SELECT name, description FROM glazes ORDER BY name' | table -i 1
 
     } else if $stats {
-        stor import -f $DATABASE_PATH
+        load-db
 
         {
-            'Last Session': ((execute-sql 'SELECT last_session FROM session LIMIT 1').0.last_session | into datetime)
             'Registered Glazes': (execute-sql 'SELECT COUNT(id) FROM glazes' | transpose -d).column1
             'Registered Categories': (execute-sql 'SELECT COUNT(DISTINCT category) FROM glazes' | transpose -d).column1
             'Tracked Files': (execute-sql 'SELECT COUNT(id) FROM files' | transpose -d).column1
@@ -386,6 +391,8 @@ def "main show" [
             'Linux Scoped': (execute-sql 'SELECT COUNT(id) FROM glazes WHERE scope = ?' -p [$SCOPE.linux] | transpose -d).column1
             'Windows Scoped': (execute-sql 'SELECT COUNT(id) FROM glazes WHERE scope = ?' -p [$SCOPE.windows] | transpose -d).column1
             'Disabled': (execute-sql 'SELECT COUNT(id) FROM glazes WHERE scope = ?' -p [$SCOPE.disabled] | transpose -d).column1
+            'Last Session': ((execute-sql 'SELECT last_session FROM session LIMIT 1').0.last_session | into datetime)
+            'DB Path': $db_path
         }
     }
 }
@@ -393,16 +400,17 @@ def "main show" [
 # Dotfiles-Nushell Tracker
 # Track dotfiles. Glaze Nushell. Customize freely.
 def main [] {
+    let db_path: path = db-path
     mut restart = false
 
     print (get-banner)
 
     log -w core
 
-    if ($DATABASE_PATH | path exists) {
+    if ($db_path | path exists) {
         # Loads the database
         log -s database ($MESSAGE.db_info_status | template { status: 'Loading' })
-        stor import -f $DATABASE_PATH
+        load-db
     } else {
         # Creates the database
         log -s database -l $LOG_LEVEL.warning -s database $MESSAGE.db_err_not_found
