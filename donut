@@ -82,7 +82,7 @@ def change-state [
         $STATE.config: [$STATE.done]
     }
 
-    stor import -f $DATABASE_PATH
+    load-db
     let state = (get-state)
 
     if $new_state in ($STATES_MAP | get $state) {
