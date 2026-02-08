@@ -56,12 +56,20 @@ def do-config []: nothing -> bool {
         | all {}
     ) and (
         glob $"($os_dir | path normalize)/autoload/*"
-            | each {
-                let source_parse = $in | path parse
-                let target_config_path: path = $target_autoload_dir | path join $"($source_parse.stem)-(get-os).($source_parse.extension)"
-                cp-link -f $in $target_config_path
-            }
-            | all {}
+        | each {
+            let source_parse = $in | path parse
+            let target_config_path: path = $target_autoload_dir | path join $"($source_parse.stem)-(get-os).($source_parse.extension)"
+            cp-link -f $in $target_config_path
+        }
+        | all {}
+    ) and (
+        glob -D $"($common_dir | path normalize)/scripts/**"
+        | each {|p|
+            let target_script_dir: directory = $nu.default-config-dir | path join scripts
+            let target_script_path: path = $p | str replace ($common_dir | path join scripts) '' | str trim -l -c (char path_sep)
+            mkdir ([$target_script_dir] | path join $target_script_path | path dirname)
+            cp-link -f $p ([$target_script_dir] | path join $target_script_path)}
+        | all {}
     )
 
     $ret
