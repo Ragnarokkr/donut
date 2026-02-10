@@ -1,4 +1,4 @@
-use ../scripts/config.nu [SCOPE OS HIGHEST_PRIORITY]
+use ../scripts/config.nu [SCOPE OS HIGHEST_PRIORITY LOWEST_PRIORITY]
 use ../scripts/messages.nu *
 use ../scripts/glaze.nu *
 use ../scripts/database.nu [add-environment]
@@ -52,7 +52,7 @@ def do-config []: nothing -> bool {
     # Configure the environment data
     log $MESSAGE.env_ok_nu_vars
     let source_env_path: path = [$common_dir nushell] | path join 'env.nu'
-    $ret = $ret and (add-environment $ID (
+    $ret = $ret and (add-environment -p ($LOWEST_PRIORITY - 1) $ID (
         open $source_env_path
         | template { age_key_file: $'"($target_prv_key_path | path normalize)"' }
     ))
