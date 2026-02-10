@@ -13,7 +13,12 @@ def --wrapped ll [...rest] {
         ls -al .
     } else {
         ls -al ...($rest | each {|p| if ($p | str contains '~') { $p | path expand } else { $p } } )
-    } | reject num_links inode created accessed
+    }
+    | if ($nu.os-info.name == linux) {
+        reject num_links inode created accessed
+    } else if ($nu.os-info.name == windows) {
+        reject created accessed
+    }
 }
 
 # Prints out cheatsheets
