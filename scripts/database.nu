@@ -3,6 +3,7 @@ use messages.nu *
 use libs/log.nu *
 use libs/strings.nu *
 use libs/system.nu [is-linux is-windows]
+use libs/fs.nu 'path normalize'
 
 # Gets the absolute path to the database
 export def db-path []: nothing -> path {
@@ -86,7 +87,7 @@ export def update-db [] {
 
     # Searches all available glazes (*.nu scripts)
     log -s database $MESSAGE.db_info_searching
-    let glazes = glob -D ($GLAZES_DIR | path join '*.nu') | where {|path| nu-check $path }
+    let glazes = glob -D ($GLAZES_DIR | path join '*.nu' | path normalize) | where {|path| nu-check $path }
     log -s database ($MESSAGE.db_info_found | template { total: ($glazes | length) })
 
     if $is_updating {
@@ -134,7 +135,7 @@ export def update-db [] {
         }
 
         for p in [$g ...$manifest.data.files] {
-            for f in (glob -D $p) {
+            for f in (glob -D ($p | path normalize)) {
                 add-file $glaze_id $f
             }
         }
