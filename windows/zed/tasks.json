@@ -1,0 +1,154 @@
+[
+  {
+    "label": "List TODOs",
+    "command": "rg",
+    "args": ["--hyperlink-format=file://{path}:{line}", "-e TODO", "-e FIXME", "-e HACK"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "hide": "never",
+    "show_summary": false,
+    "show_command": false,
+    "reveal_target": "dock"
+  },
+
+  {
+    "label": "editor: sort json selection by keys",
+    "command": "r#'$ZED_SELECTED_TEXT'# | jq -S | wl-copy",
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Header - Single Line",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Header - Multi-Single Line",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 -b multi-single | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Header - Single Line - Filled",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 -f --padding-left 2 --padding-right 2 | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Header - Multi-Single Line - Filled",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 -b multi-single -f --padding-left 2 --padding-right 2 | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Sub-Header - Single Line",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 -s sub-header | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Sub-Header - Multi-Single Line",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 -s sub-header -b multi-single | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Sub-Header - Single Line - Filled",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 -s sub-header -f --padding-left 2 --padding-right 2 | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Sub-Header - Multi-Single Line - Filled",
+    "command": "use strings/comments.nu 'comment generate' ; r#'$ZED_SELECTED_TEXT'# | comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -w 79 -s sub-header -b multi-single -f --padding-left 2 --padding-right 2 | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  },
+
+  {
+    "label": "Comment Divide - Divider",
+    "command": "use strings/comments.nu 'comment generate' ; comment generate -l (\"$ZED_FILENAME\" | path parse | get extension) -s divider -w 79 | wl-copy",
+    "use_new_terminal": true,
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "shell": {
+      "with_arguments": {
+        "program": "nu",
+        "args": ["-c"]
+      }
+    }
+  }
+]

@@ -1,0 +1,30 @@
+// Zed keymap
+//
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+  {
+    "context": "Editor && mode == full",
+    "bindings": {
+      "F14": ["task::Spawn", { "task_name": "Comment Divide - Header - Single Line" }],
+      "shift-F14": ["task::Spawn", { "task_name": "Comment Divide - Header - Multi-Single Line" }],
+      "alt-F14": ["task::Spawn", { "task_name": "Comment Divide - Header - Single Line - Filled" }],
+      "alt-shift-F14": ["task::Spawn", { "task_name": "Comment Divide - Header - Multi-Single Line - Filled" }],
+
+      "F15": ["task::Spawn", { "task_name": "Comment Divide - Sub-Header - Single Line" }],
+      "shift-F15": ["task::Spawn", { "task_name": "Comment Divide - Sub-Header - Multi-Single Line" }],
+      "alt-F15": ["task::Spawn", { "task_name": "Comment Divide - Sub-Header - Single Line - Filled" }],
+      "alt-shift-F15": [
+        "task::Spawn",
+        {
+          "task_name": "Comment Divide - Sub-Header - Multi-Single Line - Filled"
+        }
+      ],
+
+      "F16": ["task::Spawn", { "task_name": "Comment Divide - Divider" }]
+    }
+  }
+]

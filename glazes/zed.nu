@@ -4,7 +4,7 @@ use ../scripts/messages.nu *
 use ../scripts/libs/log.nu *
 use ../scripts/libs/strings.nu *
 use ../scripts/libs/fs.nu *
-use ../scripts/libs/net.nu *
+use ../scripts/libs/net.nu 'bitwarden get'
 
 const ID = path self | path parse | get stem
 
@@ -29,32 +29,42 @@ def get-manifest []: nothing -> record {
 }
 
 def do-config []: nothing -> bool {
+    mut ret = true
     let windows_dir: directory = work-dir $ID | get $SCOPE.windows
     let target_dir: directory = config-dir -m zed
 
     log ($MESSAGE.io_info_config | template { what: "settings" })
     let source_settings_path: path = $windows_dir | path join 'settings.json'
     let target_settings_path: path = $target_dir | path join 'settings.json'
-
-    log -l $LOG_LEVEL.security $MESSAGE.ui_info_bw_pass
-    let response = if (has-connection) { do { bw get item "Context7" --response } | from json } else { null }
-    if ($response == null) { return false }
-    if not ($response.success) {
+    let response = bitwarden get 'Context7'
+    $ret = $ret and (if not $response.success {
         log -l $LOG_LEVEL.fail $"Unable to retrieve the Context7 api key: ($LOG_TYPE.error.ansi_open)\(($response.message))(ansi reset)"
-        false
-    }
+        return false
+    } else { true })
     let context7_api_key = $response.data | get fields | where name == "API Key (Zed)" | get value.0
     if not ($target_settings_path | path exists) {
         open $source_settings_path
-        | update context_servers.mcp-server-context7.settings.context7_api_key $context7_api_key
+        | upsert context_servers.mcp-server-context7.settings.context7_api_key $context7_api_key
         | save -f $target_settings_path
     } else {
         open $target_settings_path
         | merge deep (open $source_settings_path)
-        | update context_servers.mcp-server-context7.settings.context7_api_key $context7_api_key
+        | upsert context_servers.mcp-server-context7.settings.context7_api_key $context7_api_key
         | save -f $target_settings_path
     }
-    $env.LAST_EXIT_CODE == 0
+    $ret = $ret and $env.LAST_EXIT_CODE == 0
+
+    log ($MESSAGE.io_info_config | template { what: "tasks" })
+    let source_tasks_path: path = $windows_dir | path join 'tasks.json'
+    let target_tasks_path: path = $target_dir | path join 'tasks.json'
+    $ret = $ret and (cp-link -f $source_tasks_path $target_tasks_path)
+
+    log ($MESSAGE.io_info_config | template { what: "keymap" })
+    let source_keymap_path: path = $windows_dir | path join 'keymap.json'
+    let target_keymap_path: path = $target_dir | path join 'keymap.json'
+    $ret = $ret and (cp-link -f $source_keymap_path $target_keymap_path)
+
+    $ret
 }
 
 # ============================================================================
