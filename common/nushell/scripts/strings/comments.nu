@@ -71,7 +71,7 @@ export def "comment generate" [
 
     if $list {
         return ($LANGUAGES | each {|l|
-            $l.ext_filter | str trim -c '(' | str trim -c ')' | split row '|'
+            $l.ext_filter | str replace '^(' '' | str replace ')$' '' | split row '|'
         } | flatten | sort -i)
     }
 
