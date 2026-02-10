@@ -36,7 +36,7 @@ def get-manifest []: nothing -> record {
             { name: 'GitHub.GitLFS' url: '{git-lfs.url}' os: $OS.windows package_manager: 'winget' }
             { name: 'Gitleaks.Gitleaks' url: '{gitleaks.url}' os: $OS.windows package_manager: 'winget' }
             { name: 'Git.GCM' url: 'https://github.com/git-ecosystem/git-credential-manager' os: $OS.windows package_manager: 'winget' }
-            { name: 'dandavision.delta' url: '{git-delta.url}' os: $OS.windows package_manager: 'winget' }
+            { name: 'dandavison.delta' url: '{git-delta.url}' os: $OS.windows package_manager: 'winget' }
             { name: 'jj-vcs.jj' url: '{jujutsu.url}' os: $OS.windows package_manager: 'winget' }
             { name: 'o2sh.onefetch' url: '{onefetch.url}' os: $OS.windows package_manager: 'winget' }
         ]
@@ -87,21 +87,21 @@ def do-config []: nothing -> bool {
     if (is-installed gh) {
         log -s git ($MESSAGE.io_info_config | template { what: 'credential helpers for github' })
         let gh_path: string = (which gh | first | get path)
-        git config set --global credential.https://github.com.helper $'($gh_path) auth git-credential'
-        git config set --global credential.https://gist.github.com.helper $'($gh_path) auth git-credential'
+        git config set --global credential.https://github.com.helper $"!'($gh_path)' auth git-credential"
+        git config set --global credential.https://gist.github.com.helper $"!'($gh_path)' auth git-credential"
     }
 
     if (is-linux) and (is-wsl) {
         log -s git ($MESSAGE.io_info_config | template { what: 'credential manager for WSL' })
-        let gcm = glob '/mnt/c/Program Files*/Git/**/git-credential-manager.exe' | first
+        let gcm = glob -D '/mnt/c/Program Files*/GnuPG/**/git-credential-manager.exe' | first
         if ($gcm | is-not-empty) {
-            git config set --global credential.helper $"($gcm | str replace -a ' ' '\ ')"
+            git config set --global credential.helper $"!'($gcm)'"
         }
     } else if (is-windows) {
         log -s git ($MESSAGE.io_info_config | template { what: 'credential manager' })
-        let gcm = glob 'c:/Program Files*/Git/**/git-credential-manager.exe' | first
+        let gcm = glob -D 'c:/Program Files*/GnuPG/**/git-credential-manager.exe' | first
         if ($gcm | is-not-empty) {
-            git config set --global credential.helper $"($gcm | str replace -a ' ' '\ ')"
+            git config set --global credential.helper $"!'($gcm)'"
         }
     }
 
@@ -141,7 +141,8 @@ def do-config []: nothing -> bool {
     }
 
     if (is-installed gpg) {
-        git config set --global gpg.program $"(which gpg | first | get path)"
+        # NOTE: the `path expand` solves an issue with Gpg4Win where the path is `C:\Program Files (x86)\Gpg4win\..\GnuPG\bin`
+        git config set --global gpg.program $"(which gpg | first | get path | path expand)"
     }
 
     log -s git ($MESSAGE.io_info_config | template { what: 'user data' })
