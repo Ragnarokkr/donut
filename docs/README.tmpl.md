@@ -11,27 +11,7 @@ anyone else (including future-me) can follow the recipe without getting burned.
 
 ## Table of Contents
 
-- [Why another dotfiles manager?](#why-another-dotfiles-manager)
-- [Getting Started](#getting-started)
-    - [Requirements](#requirements)
-    - [Installation](#installation)
-    - [The Baking Process (Setup Workflow)](#the-baking-process-setup-workflow)
-- [Terminology](#terminology)
-- [Using the Script](#using-the-script)
-    - [The Database (db)](#the-database-db)
-    - [Managing Glazes (glaze)](#managing-glazes-glaze)
-    - [Inspection (show)](#inspection-show)
-- [Technical Details](#technical-details)
-    - [Directory Structure and Scoping](#directory-structure-and-scoping)
-    - [Scripts and Support Library](#scripts-and-support-library)
-    - [The Anatomy of a Glaze](#the-anatomy-of-a-glaze)
-        - [The Manifest](#the-manifest)
-        - [The `do-install` command (Custom Baking)](#the-do-install-command-custom-baking)
-        - [The `do-config` command (The Finishing Touch)](#the-do-config-command-the-finishing-touch)
-        - [Return Values](#return-values)
-    - [The SQLite Engine](#the-sqlite-engine)
-    - [The Template System](#the-template-system)
-- [TODOs](#todos)
+{TOC}
 
 ## Why another dotfiles manager?
 
