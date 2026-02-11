@@ -13,6 +13,8 @@
     up = pull --rebase --autostash --all
 [branch]
     sort = committerdate
+[branch "master"]
+    rebase = true
 [color]
     ui = true
 [color "diff-highlight"]
