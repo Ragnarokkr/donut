@@ -149,8 +149,8 @@ def do-action [
     }
 
     # Executes the external Nushell script for a given glaze
-    let run_script: closure = {|name:string|
-        do { nu ($GLAZES_DIR | path join $"($name).nu") config } | from json
+    let run_script: closure = {|name:string, action:string|
+        do { nu ($GLAZES_DIR | path join $"($name).nu") $action } | from json
     }
 
     # Installs all supported toppings and let the Nushell script to handle the custom ones
@@ -158,7 +158,7 @@ def do-action [
         let toppings: table = stor open | query db $"SELECT name, package_manager FROM toppings WHERE glaze_id = '($glaze.id)' AND os = '($target_os)'"
         let custom_toppings: table = $toppings | where package_manager == 'custom'
         (install-toppings ($toppings | where package_manager != 'custom')) and (if ($custom_toppings | is-not-empty) {
-            do $run_script $glaze.name
+            do $run_script $glaze.name install
         } else { true })
     }
 
@@ -186,7 +186,7 @@ def do-action [
                     let success = if $action == $ACTION.install {
                         do $do_install $dep
                     } else {
-                        let result = do $run_script $dep.name
+                        let result = do $run_script $dep.name config
                         load-db
                         $result
                     }
@@ -205,9 +205,9 @@ def do-action [
             # Execute the action for the primary glaze
             log -s $act.tag ($MESSAGE.glaze_info_detail | template { status: $act.verb glaze: $glaze.name })
             let success = if $action == $ACTION.install {
-                do $do_install $glaze
+                do $do_install $glaze install
             } else {
-                let result = do $run_script $glaze.name
+                let result = do $run_script $glaze.name config
                 load-db
                 $result
             }
