@@ -43,7 +43,7 @@ def get-manifest []: nothing -> record {
         $ID
         --category 'tools'
         --description 'Blazing fast terminal file manager written in Rust, based on async I/O.'
-        --scope $SCOPE.linux
+        --scope $SCOPE.disabled
         --toppings [
             { name: 'yazi' url: 'https://github.com/sxyazi/yazi' os: $OS.linux package_manager: 'pacman' }
         ]
