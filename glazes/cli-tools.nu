@@ -26,6 +26,7 @@ def get-manifest []: nothing -> record {
             { name: 'just' url: 'https://github.com/casey/just' os: $OS.linux package_manager: 'pacman' }
             { name: 'pandoc-bin' url: 'https://pandoc.org/' os: $OS.linux package_manager: 'paru' }
             { name: 'ripgrep' url: 'https://github.com/BurntSushi/ripgrep' os: $OS.linux package_manager: 'pacman' }
+            { name: 'tirith' url: 'https://github.com/sheeki03/tirith' os: $OS.linux package_manager: 'cargo' }
             { name: 'tokei' url: 'https://github.com/XAMPPRocky/tokei' os: $OS.linux package_manager: 'pacman' }
             { name: 'typst' url: 'https://typst.app' os: $OS.linux package_manager: 'pacman' }
             { name: 'wl-clipboard' url: 'https://github.com/bugaevc/wl-clipboard' os: $OS.linux package_manager: 'pacman' }
