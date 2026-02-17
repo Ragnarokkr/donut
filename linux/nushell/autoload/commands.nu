@@ -1,17 +1,32 @@
+# Prints out a structured version of system's `os-release` file.
 def os-release [] {
-  open /etc/os-release | parse "{key}={value}"
+    let file_path: path = '/etc/os-release'
+    if ($file_path | path exists) {
+        open $file_path | parse "{key}={value}"
+    }
 }
 
+# Cleans platform's trash directory (used by `rm -t`).
 def "clean trash" [] {
-    mut trash_path = ""
-    if "XDG_DATA_HOME" in $env {
-        $trash_path = [ $env.XDG_DATA_HOME Trash ] | path join
+    let trash_path: path = if XDG_DATA_HOME in $env {
+        $env.XDG_DATA_HOME | path join Trash
     } else {
-        $trash_path = [ $env.HOME .local share Trash ] | path join
+        [$env.HOME .local share] | path join Trash
     }
 
-    if ( $trash_path | path exists ) {
-        rm --recursive --permanent ([ $trash_path files ] | path join )/*
-        rm --recursive --permanent ([ $trash_path info ] | path join )/*
+    if ($trash_path | path exists) {
+        let paths: list<path> = [
+            ([$trash_path files] | path join '*')
+            ([$trash_path info] | path join '*')
+        ]
+        for p in $paths {
+            print -n $"cleaning ($p) ... "
+            try {
+                glob $p | each {rm -pr $in}
+                print 'done'
+            } catch {|err|
+                print $"error: ($err.msg)"
+            }
+        }
     }
 }
