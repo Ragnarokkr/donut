@@ -31,7 +31,7 @@ def get-manifest []: nothing -> record {
 
 def do-install []: nothing -> bool {
     if (is-installed paru) {
-        log -l $LOG_LEVEL.warning ($MESSAGE.run_skip | template { module: "paru" action: "install" reason: "already installed" })
+        log -l $LOG_LEVEL.warning ($MESSAGE.glaze_warn_skip | template { glaze: "paru" reason: "it is already installed" })
         return true
     }
 

@@ -24,6 +24,7 @@ export const MESSAGE = {
     glaze_info_detail: $"{status} ($LOG_TYPE.action.ansi_open){glaze}(ansi reset)..."
     glaze_info_dep_generic: '{status} dependencies...'
     glaze_info_dep_detail: $"{status} dependency ($LOG_TYPE.action.ansi_open){glaze}(ansi reset)..."
+    glaze_warn_skip: $"Skipping glaze ($LOG_TYPE.action.ansi_open){glaze}(ansi reset) because ($LOG_TYPE.warning.ansi_open){reason}($LOG_TYPE.warning.ansi_close)."
 
     # Database
     db_info_status: $'{status} database...'
