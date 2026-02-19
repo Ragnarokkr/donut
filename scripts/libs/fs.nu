@@ -74,6 +74,31 @@ export def config-dir [
     $ret
 }
 
+# Return the user's data directory based on current OS.
+#
+# If a directory is passed as parameter, it will be appended to the resulting
+# path. It adheres to XDG Base Directory Specification on Linux (and Windows),
+# and relies on `APPDATA` and `LOCALAPPDATA` on Windows.
+export def data-dir [
+    dir?: path = "" # custom directory
+    --make (-m)     # make the directory if it does not exists
+    --not-sync (-n) # use 'LOCALAPPDATA instead of `APPDATA` (**Windows**)
+] {
+    let ret = if "XDG_DATA_PATH" in $env {
+        [$env.XDG_DATA_PATH $dir] | where $it != "" | path join
+    } else if (is-linux) {
+        [$env.HOME .local share $dir] | where $it != "" | path join
+    } else if (is-windows) {
+        if ($not_sync) {
+            [$env.LOCALAPPDATA $dir] | where $it != "" | path join
+        } else {
+            [$env.APPDATA $dir] | where $it != "" | path join
+        }
+    }
+    if $make { mkdir $ret }
+    $ret
+}
+
 # Return the user's local bin directory according to the current OS.
 #
 # If a directory is passed as parameter, it will be appended to the resulting
