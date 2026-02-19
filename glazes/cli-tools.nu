@@ -1,7 +1,11 @@
 use ../scripts/config.nu [SCOPE OS]
 use ../scripts/glaze.nu *
 use ../scripts/messages.nu *
+use ../scripts/database.nu  add-environment
 use ../scripts/libs/log.nu *
+use ../scripts/libs/fs.nu ['path normalize' work-dir data-dir local-bin-dir cp-link]
+use ../scripts/libs/net.nu 'github get-archive'
+use ../scripts/libs/archive.nu *
 
 const ID = path self | path parse | get stem
 
@@ -24,6 +28,7 @@ def get-manifest []: nothing -> record {
             { name: 'hevi-bin' url: 'https://codeberg.org/arnauc/hevi' os: $OS.linux package_manager: 'paru' }
             { name: 'hyperfine' url: 'https://github.com/sharkdp/hyperfine' os: $OS.linux package_manager: 'pacman' }
             { name: 'just' url: 'https://github.com/casey/just' os: $OS.linux package_manager: 'pacman' }
+            { name: 'nudo' url: 'https://github.com/Ragnarokkr/nudo' os: $OS.linux package_manager: 'custom' }
             { name: 'pandoc-bin' url: 'https://pandoc.org/' os: $OS.linux package_manager: 'paru' }
             { name: 'ripgrep' url: 'https://github.com/BurntSushi/ripgrep' os: $OS.linux package_manager: 'pacman' }
             { name: 'tirith' url: 'https://github.com/sheeki03/tirith' os: $OS.linux package_manager: 'cargo' }
@@ -40,6 +45,33 @@ def get-manifest []: nothing -> record {
             { name: 'Typst.Typst' url: '{typst.url}' os: $OS.windows package_manager: 'winget' }
         ]
     )
+}
+
+def do-install []: nothing -> bool {
+    # Install nudo
+    let tmp_nudo_dir: directory = mktemp -td nudo.XXX
+    let tmp_nudo_path: path = $tmp_nudo_dir | path join master.zip
+    let source_nudo_dir: directory = $tmp_nudo_dir | path join nudo-master
+    let target_nudo_path: path = data-dir -m nudo
+    let target_nudo_bin_path: path = local-bin-dir | path join nudo
+
+    github get-archive Ragnarokkr nudo | save -fr $tmp_nudo_path
+    let result = decompress $tmp_nudo_path
+    if not $result.success { return false }
+
+    let files = glob $"($source_nudo_dir | path normalize)/*"
+    $files | each {cp -fru $in $target_nudo_path}
+    if not (cp-link -f ($target_nudo_path | path join nudo) $target_nudo_bin_path) { return false }
+
+    rm -frp $tmp_nudo_dir
+    true
+}
+
+def do-config []: nothing -> bool {
+    # Config nudo
+    let common_dir = work-dir $ID | get $SCOPE.common
+    let source_nudo_config_path = [$common_dir nushell] | path join nudo.nu
+    add-environment $ID (open $source_nudo_config_path)
 }
 
 # ============================================================================
