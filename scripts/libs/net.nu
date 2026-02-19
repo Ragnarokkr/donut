@@ -82,6 +82,26 @@ export def "github get" [
     }
 }
 
+# Download the latest archive from GitHub
+#
+# The downloaded content is returned to the pipeline. It is up to the user to
+# decide where to save it.
+export def "github get-archive" [
+    user: string          # user name
+    repo: string          # repo name
+]: nothing -> oneof<any, nothing> {
+    log -s "net" ($MESSAGE.net_info_github_get_archive | template { user: $user repo: $repo })
+    if (has-connection) {
+        try {
+            http get $"https://github.com/($user)/($repo)/archive/refs/heads/master/master.zip"
+        } catch {
+            null
+        }
+    } else {
+        null
+    }
+}
+
 # Download the latest release of a project from SourceForge
 #
 # The downloaded content is checked for integrity. If the check passes,

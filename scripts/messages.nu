@@ -38,6 +38,7 @@ export const MESSAGE = {
     # Network
     net_info_wait: $"Waiting for connection ($LOG_TYPE.comment.ansi_open)\( {count} )(ansi reset)..."
     net_info_github_get: $"Downloading ($LOG_TYPE.source.ansi_open){user}/{repo}($LOG_TYPE.source.ansi_close) asset from GitHub(ansi reset)"
+    net_info_github_get_archive: $"Downloading ($LOG_TYPE.source.ansi_open){user}/{repo}($LOG_TYPE.source.ansi_close) master.zip from GitHub(ansi reset)"
     net_info_sourceforge_get: $"Downloading ($LOG_TYPE.source.ansi_open){project}($LOG_TYPE.source.ansi_close) from Sourceforge(ansi reset)"
     net_info_download: $"Downloading ($LOG_TYPE.source.ansi_open){what}(ansi reset)"
     net_info_digest: 'Checking file integrity...'
