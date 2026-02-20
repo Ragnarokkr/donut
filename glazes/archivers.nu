@@ -16,6 +16,7 @@ def get-manifest []: nothing -> record {
         --scope $SCOPE.common
         --toppings [
             { name: '7zip' url: 'https://7-zip.org' os: $OS.linux, package_manager: 'pacman' }
+            { name: 'zip' url: 'https://infozip.sourceforge.net/Zip.html' os: $OS.linux, package_manager: 'pacman' }
             { name: 'brotli' url: 'https://github.com/google/brotli' os: $OS.linux package_manager: 'pacman' }
             { name: 'zstd' url: 'https://facebook.github.io/zstd' os: $OS.linux package_manager: 'pacman' }
             { name: 'M2Team.NanaZip.Preview' url: 'https://github.com/M2Team/NanaZip' os: $OS.windows package_manager: 'winget'}
