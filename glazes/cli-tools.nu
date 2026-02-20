@@ -31,10 +31,12 @@ def get-manifest []: nothing -> record {
             { name: 'nudo' url: 'https://github.com/Ragnarokkr/nudo' os: $OS.linux package_manager: 'custom' }
             { name: 'pandoc-bin' url: 'https://pandoc.org/' os: $OS.linux package_manager: 'paru' }
             { name: 'ripgrep' url: 'https://github.com/BurntSushi/ripgrep' os: $OS.linux package_manager: 'pacman' }
+            { name: 'television' url: 'https://github.com/alexpasmantier/television' os: $OS.linux package_manager: 'pacman' }
             { name: 'tirith' url: 'https://github.com/sheeki03/tirith' os: $OS.linux package_manager: 'cargo' }
             { name: 'tokei' url: 'https://github.com/XAMPPRocky/tokei' os: $OS.linux package_manager: 'pacman' }
             { name: 'typst' url: 'https://typst.app' os: $OS.linux package_manager: 'pacman' }
             { name: 'wl-clipboard' url: 'https://github.com/bugaevc/wl-clipboard' os: $OS.linux package_manager: 'pacman' }
+            { name: 'alexpasmantier.television' url: '{television.url}' os: $OS.windows package_manager: 'winget' }
             { name: 'Arnau478.hevi' url: '{hevi-bin.url}' os: $OS.windows package_manager: 'winget' }
             { name: 'Casey.Just' url: '{just.url}' os: $OS.windows package_manager: 'winget' }
             { name: 'charmbracelet.glow' url: '{glow.url}' os: $OS.windows package_manager: 'winget' }
